@@ -205,4 +205,9 @@ user : dict[Literal['name'] | Literal['second_name'] | Literal['username'], str]
 ![](https://ucarecdn.com/d8af43bd-fcc3-4dcf-b39e-7245b4b86ad8/-/preview/-/enhance/75/)
 
 Помимо обозначенных типов, в модуле `typing` их еще много разных, буквально, на все случаи жизни. А если и их вам не хватает - никто не мешает создавать свои классы. Чем мы и займемся в следующем шаге.
- Hi
+
+## Примеры API
+
+- [GitHub-репозиторий](https://github.com/public-apis/public-apis) с большим количеством публичных API
+- [Статья на Хабре](https://habr.com/ru/company/macloud/blog/562700/) со списком "интересных (и забавных)" API
+
