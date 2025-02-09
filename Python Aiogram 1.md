@@ -871,3 +871,215 @@ ZeroDivisionError: division by zero
 
 ## Конфигурирование логирования
 
+## Конфигурирование логирования с помощью python-словаря
+
+В учебном проекте, который мы создали на предыдущем шаге, пока всего 4 модуля, а в телеграм-ботах количество таких модулей легко может доходить до нескольких десятков. Представляете, если вы захотите как-то по-особенному настроить логирование в таком проекте, насколько неудобно будет искать все эти настройки логгеров по разным модулям?
+
+Вот, как раз, чтобы не искать все эти настройки и существуют специальные конфигурационные файлы для логирования, в которых все настройки собраны в одном месте. Сейчас мы перепишем модули проекта, но результат работы логирования останется тем же. Добавим еще один модуль **logging_settings.py**, в котором будет словарь с конфигурацией логов и загрузим этот словарь в точке входа с помощью функции `dictConfig`. Также создадим модуль **log_filters.py**, чтобы все фильтры хранить в одном месте.
+
+### main.py
+
+```python
+import logging.config
+
+from logging_settings import logging_config
+from module_1 import main
+
+# Загружаем настройки логирования из словаря `logging_config`
+logging.config.dictConfig(logging_config)
+
+# Исполняем функцию `main` из модуля `module_1.py`
+main()
+```
+
+### module_1.py
+
+```python
+import logging
+
+from module_2 import devide_number
+from module_3 import square_number
+
+logger = logging.getLogger(__name__)
+
+
+def main():
+    a, b = 12, 2
+    c, d = 4, 0
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    print(devide_number(a, square_number(b)))
+    print(devide_number(square_number(c), d))
+```
+
+### module_2.py
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def devide_number(dividend: int | float, devider: int | float):
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    try:
+        return dividend / devider
+    except ZeroDivisionError:
+        logger.exception('Произошло деление на 0')
+```
+
+### module_3.py
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def square_number(number: int | float):
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    return number**2
+```
+
+### log_filters.py
+
+```python
+import logging
+
+
+class ErrorLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname == 'ERROR'
+
+
+class DebugWarningLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname in ('DEBUG', 'WARNING')
+
+
+class CriticalLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname == 'CRITICAL'
+```
+
+### logging_settings.py
+
+```python
+import sys
+
+from log_filters import DebugWarningLogFilter, CriticalLogFilter, ErrorLogFilter
+
+
+logging_config = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'default': {
+            'format': '#%(levelname)-8s %(name)s:%(funcName)s - %(message)s'
+        },
+        'formatter_1': {
+            'format': '[%(asctime)s] #%(levelname)-8s %(filename)s:'
+                      '%(lineno)d - %(name)s:%(funcName)s - %(message)s'
+        },
+        'formatter_2': {
+            'format': '#%(levelname)-8s [%(asctime)s] - %(filename)s:'
+                      '%(lineno)d - %(name)s:%(funcName)s - %(message)s'
+        },
+        'formatter_3': {
+            'format': '#%(levelname)-8s [%(asctime)s] - %(message)s'
+        }
+    },
+    'filters': {
+        'critical_filter': {
+            '()': CriticalLogFilter,
+        },
+        'error_filter': {
+            '()': ErrorLogFilter,
+        },
+        'debug_warning_filter': {
+            '()': DebugWarningLogFilter,
+        }
+    },
+    'handlers': {
+        'default': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+        'stderr': {
+            'class': 'logging.StreamHandler',
+        },
+        'stdout': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'formatter_2',
+            'filters': ['debug_warning_filter'],
+            'stream': sys.stdout
+        },
+        'error_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+            'mode': 'w',
+            'level': 'DEBUG',
+            'formatter': 'formatter_1',
+            'filters': ['error_filter']
+        },
+        'critical_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'critical.log',
+            'mode': 'w',
+            'formatter': 'formatter_3',
+            'filters': ['critical_filter']
+        }
+    },
+    'loggers': {
+        'module_1': {
+            'level': 'DEBUG',
+            'handlers': ['error_file']
+
+        },
+        'module_2': {
+            'handlers': ['stdout']
+        },
+        'module_3': {
+            'handlers': ['stderr', 'critical_file']
+        }
+    },
+    'root': {
+        'formatter': 'default',
+        'handlers': ['default']
+    }
+}
+```
+
+Обратите внимание, что теперь сами модули проекта стали выглядеть опрятнее, потому что в них не производится настройка логгеров. Все настройки теперь в специальном словаре `logging_config`, который импортируется в **main.py** и передается функции `dictConfig`. И работает все точно так же, как и в первый раз. Можете убедиться в этом, запустив на исполнение модуль **main.py**.
+
+Давайте разберемся из каких ключей и вложенных словарей состоит словарь `logging_config`. Первым ключом словаря идет `'version'` со значением `1`. Это дефолтный ключ с дефолтным значением, которые нужно указывать всегда, для того, чтобы библиотека `logging` понимала какой версии используется конфигурация и имела возможность поддерживать обратную совместимость, если в будущем формат конфигурации будет изменен. Не трогаем.
+
+Следующий ключ - `'disable_existing_loggers'` отвечает за то нужно ли отключить все другие настройки конфигурации логгеров. Когда `True` - используются только настройки из данного словаря, а остальные (которые могут быть в других библиотеках, например) игнорируются. Когда `False` - накладываются поверх других подобных настроек и дополняют их.
+
+Далее идет ключ `'formatters'`. Как несложно догадаться, здесь описываются форматтеры. Ключами во вложенном словаре являются имена форматтеров, а значениями - словари с настройками форматтеров (шаблон, стиль форматирования и т.п.)
+
+Дальше ключ `'filters'`. Во вложенном словаре по этому ключу перечислены произвольные имена фильтров, являющиеся ключами для еще одного уровня вложенных словарей с настройками каждого фильтра. Тут важная особенность. Так как хэндлерам нужно передавать не ссылки на классы, описывающие фильтры, а экземпляры этих классов, то предусмотрена специальная нотация `'()': <ИмяКлассаФильтра>`. Так библиотека `logging` понимает, что нужно создавать именно экземпляр класса, а не просто ссылку на класс.
+
+Следующий ключ `'handlers'`. Значением по этому ключу является словарь с хэндлерами. Каждое название хэндлера тоже в свою очередь является ключом, значением которого является вложенный словарь с настройками конкретного хэндлера. Посмотрите, что за пары ключ-значение в этом словаре, думаю, вы разберетесь, что они обозначают по аналогии с тем, как мы настраивали логирование без словаря конфигурации на предыдущем шаге.
+
+Далее по ключу `'loggers'` находятся настройки логгеров, а по ключу `'root'` - настройки корневого логгера.
+
+## Конфигурирование логирования с помощью YAML-файла
+
