@@ -555,3 +555,32 @@ print(logger.handlers)
 
 В библиотеке `logging` есть как стандартные классы для создания хэндлеров, так и возможность создавать кастомные хэндлеры для отправки логов куда угодно. Например класс `StreamHandler` позволяет определить вывод логов в `stdout` или `stderr` (по умолчанию как раз `stderr`), а класс `FileHandler` позволяет определить вывод логов в файл. А чтобы создать свой собственный хэндлер - нужно отнаследоваться от класса `Handler` и переопределить некоторые его методы.
 
+**Пример 1.** Хэндлеры для вывода логов в `stderr` и `stdout`.
+
+```python
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
+
+stderr_handler = logging.StreamHandler()
+stdout_handler = logging.StreamHandler(sys.stdout)
+
+logger.addHandler(stdout_handler)
+logger.addHandler(stderr_handler)
+
+print(logger.handlers)
+
+logger.warning('Это лог с предупреждением!')
+```
+
+Результат работы кода будет следующим:
+
+```bash
+[<StreamHandler <stdout> (NOTSET)>, <StreamHandler <stderr> (NOTSET)>]
+Это лог с предупреждением!
+Это лог с предупреждением!
+```
+
+Во-первых, теперь у логгера в списке есть 2 хэндлера, а во-вторых, теперь в консоли мы видим сообщение лога два раза, потому что в консоли отображается сразу и `stderr` и `stdout` потоки, в третьих, уровень хэндлеров `NOTSET`, а значит, они будут обрабатывать логи любого уровня. Если задать хэндлерам какой-то другой уровень, например, `INFO`, то обрабатывать они будут только логи, начиная с этого уровня (`INFO`, `WARNING`, `ERROR` и `CRITICAL`).
+
