@@ -671,3 +671,80 @@ logger.warning('Это лог с предупреждением!')
 ## Фильтры
 
 
+**Пример 1.** Фильтр, который будет передавать в хэндлеры только логи уровня `ERROR`, в которых есть слово "важно", написанное в любом регистре.
+
+```python
+import logging
+
+
+# Определяем свой фильтр, наследуюясь от класса Filter библиотеки logging
+class ErrorLogFilter(logging.Filter):
+    # Переопределяем метод filter, который принимает `self` и `record`
+    # Переменная рекорд будет ссылаться на объект класса LogRecord
+    def filter(self, record):
+        return record.levelname == 'ERROR' and 'важно' in record.msg.lower()
+
+
+# Инициализируем логгер
+logger = logging.getLogger(__name__)
+
+# Создаем хэндлер, который будет направлять логи в stderr
+stderr_handler = logging.StreamHandler()
+
+# Подключаем фильтр к хэндлеру
+stderr_handler.addFilter(ErrorLogFilter())
+
+# Подключаем хэндлер к логгеру
+logger.addHandler(stderr_handler)
+
+logger.warning('Важно! Это лог с предупреждением!')
+logger.error('Важно! Это лог с ошибкой!')
+logger.info('Важно! Это лог с уровня INFO!')
+logger.error('Это лог с ошибкой!')
+```
+
+Результатом работы кода будет:
+
+```no-highlight
+Важно! Это лог с ошибкой!
+```
+
+То есть видно, что это сообщение лога с уровня `ERROR`, выведенное в `stderr`, чего мы и хотели добиться с помощью фильтра.
+
+**Пример 2.** Фильтр, который будет передавать в хэндлеры логи, только если значение счетчика в цикле `for` будет четным числом.
+
+```python
+import logging
+
+
+# Определяем свой фильтр, наследуюясь от класса Filter библиотеки logging
+class EvenLogFilter(logging.Filter):
+    def filter(self, record):
+        return not record.i % 2
+
+
+# Инициализируем логгер
+logger = logging.getLogger(__name__)
+
+# Создаем хэндлер, который будет направлять логи в stderr
+stderr_handler = logging.StreamHandler()
+
+# Подключаем фильтр к хэндлеру
+stderr_handler.addFilter(EvenLogFilter())
+
+# Подключаем хэндлер к логгеру
+logger.addHandler(stderr_handler)
+
+for i in range(1, 5):
+    logger.warning('Важно! Это лог с предупреждением! %d', i, extra={'i': i})
+```
+
+Результат работы кода:
+
+```no-highlight
+Важно! Это лог с предупреждением! 2
+Важно! Это лог с предупреждением! 4
+```
+
+То есть с помощью параметра `extra` можно в словаре передавать какие-то дополнительные данные, которые затем будут доступны у экземпляра класса `LogRecord` в фильтре. Ключи из словаря становятся атрибутами объекта типа `LogRecord`, по которым доступны значения по этим ключам в словаре `extra`.
+
