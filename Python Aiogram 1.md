@@ -535,3 +535,5 @@ formatter_2 = logging.Formatter(
 )
 ```
 
+## Хэндлеры
+
