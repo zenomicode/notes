@@ -1083,3 +1083,188 @@ logging_config = {
 
 ## Конфигурирование логирования с помощью YAML-файла
 
+Называться файл будет **logging_config.yaml**. Для того, чтобы его корректно прочитать нужно сначала установить библиотеку `yaml`:
+
+```bash
+pip install pyyaml
+```
+
+И на всякий случай, для наглядности, я приведу код всего мини-проекта еще раз.
+
+### main.py
+
+```python
+import logging.config
+
+import yaml
+from module_1 import main
+
+with open('logging_config.yaml', 'rt') as f:
+    config = yaml.safe_load(f.read())
+
+logging.config.dictConfig(config)
+
+main()
+```
+
+### module_1.py
+
+```python
+import logging
+
+from module_2 import devide_number
+from module_3 import square_number
+
+logger = logging.getLogger(__name__)
+
+
+def main():
+    a, b = 12, 2
+    c, d = 4, 0
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    print(devide_number(a, square_number(b)))
+    print(devide_number(square_number(c), d))
+```
+
+### module_2.py
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def devide_number(dividend: int | float, devider: int | float):
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    try:
+        return dividend / devider
+    except ZeroDivisionError:
+        logger.exception('Произошло деление на 0')
+```
+
+### module_3.py
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def square_number(number: int | float):
+
+    logger.debug('Лог DEBUG')
+    logger.info('Лог INFO')
+    logger.warning('Лог WARNING')
+    logger.error('Лог ERROR')
+    logger.critical('Лог CRITICAL')
+
+    return number**2
+```
+
+### log_filters.py
+
+```python
+import logging
+
+
+class ErrorLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname == 'ERROR'
+
+
+class DebugWarningLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname in ('DEBUG', 'WARNING')
+
+
+class CriticalLogFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname == 'CRITICAL'
+```
+
+### logging_config.yaml
+
+```yaml
+version: 1
+disable_existing_loggers: True
+
+formatters:
+  default:
+    format: '#%(levelname)-8s %(name)s:%(funcName)s - %(message)s'
+
+  formatter_1:
+    format: '[%(asctime)s] #%(levelname)-8s %(filename)s:%(lineno)d - %(name)s:%(funcName)s - %(message)s'
+
+  formatter_2:
+    format: '#%(levelname)-8s [%(asctime)s] - %(filename)s:%(lineno)d - %(name)s:%(funcName)s - %(message)s'
+
+  formatter_3:
+    format: '#%(levelname)-8s [%(asctime)s] - %(message)s'
+
+filters:
+  critical_filter:
+    (): log_filters.CriticalLogFilter
+
+  error_filter:
+    (): log_filters.ErrorLogFilter
+
+  debug_warning_filter:
+    (): log_filters.DebugWarningLogFilter
+
+handlers:
+  default:
+    class: logging.StreamHandler
+    formatter: default
+
+  stderr:
+    class: logging.StreamHandler
+
+  stdout:
+    class: logging.StreamHandler
+    formatter: formatter_2
+    filters: [debug_warning_filter]
+    stream: ext://sys.stdout
+
+  error_file:
+    class: logging.FileHandler
+    filename: error.log
+    mode: w
+    level: DEBUG
+    formatter: formatter_1
+    filters: [error_filter]
+
+  critical_file:
+    class: logging.FileHandler
+    filename: critical.log
+    mode: w
+    formatter: formatter_3
+    filters: [critical_filter]
+
+loggers:
+  module_1:
+    level: DEBUG
+    handlers: [error_file]
+
+  module_2:
+    handlers: [stdout]
+
+  module_3:
+    handlers: [stderr, critical_file]
+
+root:
+  formatter: default
+  handlers: [default]
+```
+
