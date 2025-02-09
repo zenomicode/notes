@@ -92,3 +92,47 @@ print(logging.CRITICAL)
 
 Уровень для серьезных ошибок, после которых, чаще всего, приложение уже не сможет работать дальше.
 
+**Пример 1.** Настраиваем уровень `DEBUG`, как минимальный уровень, с которого требуется вывод логов.
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+logging.debug('Это лог уровня DEBUG')
+logging.info('Это лог уровня INFO')
+logging.warning('Это лог уровня WARNING')
+logging.error('Это лог уровня ERROR')
+logging.critical('Это лог уровня CRITICAL')
+```
+
+И, соответственно, теперь получаем в консоли сообщения всех уровней:
+
+```no-highlight
+DEBUG:root:Это лог уровня DEBUG
+INFO:root:Это лог уровня INFO
+WARNING:root:Это лог уровня WARNING
+ERROR:root:Это лог уровня ERROR
+CRITICAL:root:Это лог уровня CRITICAL
+```
+
+**Пример 2.** Настраиваем логирование на вывод сообщений только уровня `CRITICAL`.
+
+```python
+import logging
+
+logging.basicConfig(level=logging.CRITICAL)
+
+logging.debug('Это лог уровня DEBUG')
+logging.info('Это лог уровня INFO')
+logging.warning('Это лог уровня WARNING')
+logging.error('Это лог уровня ERROR')
+logging.critical('Это лог уровня CRITICAL')
+```
+
+И получаем соответствующий вывод:
+
+```no-highlight
+CRITICAL:root:Это лог уровня CRITICAL
+```
+
