@@ -1268,3 +1268,18 @@ root:
   handlers: [default]
 ```
 
+## Шаблоны для ботов на aiogram
+
+1. [aiogram_bot_template](https://github.com/kmsint/aiogram_bot_template) by **kmsint** (обновляемый шаблон, которым пользуюсь я)
+    
+2. [aiogram_bot_template](https://github.com/Forden/aiogram-bot-template) by **Forden**
+    
+3. [aiogram_template](https://github.com/F0rzend/aiogram_template) by **F0rzend**
+    
+4. [aiogram_template](https://github.com/bomzheg/aiogram_template) by **bomzheg**
+    
+5. [Advanced User Telegram Bot](https://github.com/BaggerFast/AdvancedUserTelegramBot) by **BaggerFast**
+    
+6. [tgbot_template](https://github.com/Tishka17/tgbot_template) by **Tishka17**
+    
+7. [simple-aiogram-bot](https://github.com/xALEGORx/simple-aiogram-bot) by **xALEGORx**
